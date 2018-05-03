@@ -1,151 +1,122 @@
 // 4283f11a-0c36-490a-a135-7df8f7c954d4
 
-
+/* http://138.68.64.12:3017/sales */
+var venditeMensili = [  { 'month' : '01', 'amount' : 0 },
+                        { 'month' : '02', 'amount' : 0 },
+                        { 'month' : '03', 'amount' : 0 },
+                        { 'month' : '04', 'amount' : 0 },
+                        { 'month' : '05', 'amount' : 0 },
+                        { 'month' : '06', 'amount' : 0 },
+                        { 'month' : '07', 'amount' : 0 },
+                        { 'month' : '08', 'amount' : 0 },
+                        { 'month' : '09', 'amount' : 0 },
+                        { 'month' : '10', 'amount' : 0 },
+                        { 'month' : '11', 'amount' : 0 },
+                        { 'month' : '12', 'amount' : 0 },
+                     ]
 
 $(document).ready(function(){
 
-   /*
-   //Salvo in una variabile l'oggetto input
-   var thisInput = $('#search-input');
-   resetInput(thisInput);
-   var thisInputVal = "";
-   getTodoList();
+   $('#btn').click(function(){
 
-
-
-   //Chiamata AJAX alla pressione del tasto Enter
-   $('#search-input').keypress(function(e) {
-      //13 = Tasto invio
-      if (e.which == 13) {
-         thisInputVal = thisInput.val();
-         resetInput(thisInput);
-         addTodo(thisInputVal);
-      }
-   });
-
-   //Al click del button search recupero il contenuto dell'input
-   //e invio una richiesta AJAX alla API TMDb.
-   $('#search-btn').click(function(){
-      thisInputVal = thisInput.val();
-      resetInput(thisInput);
-      addTodo(thisInputVal);
-   });
-
-
-   $(document).on('click', '.delete-btn', function(){
-      var thisItem = $(this).parent();
-      var idItem = thisItem.attr('id');
-      console.log(idItem);
-      deleteItem(idItem);
-   });
-
-   $(document).on('click', '.modify-btn', function(){
-      var itemContainer = $(this).parent();
-      var idItem = itemContainer.attr('id');
-
-      var thisItem = itemContainer.children('.item');
-      var content = thisItem.text();
-
-      var usrInput = prompt("Modifica todo selezionato: " + content);
-
-      console.log( usrInput + " " + idItem);
-      updateItem(usrInput, idItem);
-      // var idItem = thisItem.attr('id');
-      // console.log(idItem);
-      // deleteItem(idItem);
-   });
-
-   /* ***** FUNZIONI *****
-
-   //Funziona che inoltra la chiamata AJAX. Il parametro ricevuto in ingresso
-   //è il valore recuperato dal campo input
-   function getTodoList() {
       $.ajax({
-         url : "http://138.68.64.12:3007/todo/",
+         url : "http://138.68.64.12:3017/sales",
          method : "GET",
 
-         success : function(data){
+         success : function(data) {
             console.log(data);
+
             for (var i = 0; i < data.length; i++) {
-               $('#list').append(
-                  "<div class='item-ctn' id='"+ data[i]['id'] + "'>" +
-                     "<div class='modify-btn'>M</div>" +
-                     "<div class='item'>" + data[i]['text'] + "</div>" +
-                     "<div class='delete-btn'>X</div>" +
-                  "</div>"
-               )
+               var saleDate = moment(data[i].date, "DD-MM-YYYY");
+               var saleAmount = data[i].amount;
+               var thisMonth = saleDate.format('MM');
+               venditeMensili[thisMonth-1].amount = venditeMensili[thisMonth-1].amount + saleAmount;
             }
-         },
-         error : function(e){
-            console.log(e);
-         },
-      });
-   }
 
-   function addTodo(thisInputVal) {
-      $.ajax({
-         url : "http://138.68.64.12:3007/todo/",
-         method : "POST",
-         data : {
-            text : thisInputVal,
-         },
-         success : function(data){
-               console.log(data);
-               $('#list').append(
-                  "<div class='item-ctn' id='"+ data['id'] + "'>" +
-                     "<div class='modifyn-bt'>M</div>" +
-                     "<div class='item'>" + data['text'] + "</div>" +
-                     "<div class='delete-btn'>X</div>" +
-                  "</div>"
-               )
+            printLineChart(venditeMensili);
+            console.log(venditeMensili);
+
+            var salesmen = getSalesMen(data);
+
+            console.log(salesmen);
+
+            var individual = getIndividualSales(data);
+
+            console.log(individual);
+            //console.log(data.format('MM'));
+
+
          },
 
          error : function(e){
             console.log(e);
          },
       });
-   }
 
-   function updateItem(newContent, itemid){
-      $.ajax({
-            url : "http://138.68.64.12:3007/todo/" + itemid,
-            method : "PUT",
-            data : {
-               id : itemid,
-               text : newContent
-            },
-            success : function(data){
-               console.log(data);
-               $('#list').children("#"+itemid).children('.item').text(newContent);
-            },
-            error : function(e){
-               console.log(e);
-            },
+   });
+
+   //Funzione che mostra un grafico che mostra l'andamento delle vendite mensili
+   function printLineChart(venditeMensili) {
+      var ctx = document.getElementById('myChart').getContext('2d');
+      var chart = new Chart(ctx, {
+         // The type of chart we want to create
+         type: 'line',
+
+         // The data for our dataset
+         data: {
+            labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+            datasets: [{
+               label: "Vendite Mensili",
+               borderColor: 'rgb(255, 99, 132)',
+               backgroundColor: 'rgba(255, 99, 132, 0)',
+               data: [venditeMensili[0].amount, venditeMensili[1].amount, venditeMensili[2].amount, venditeMensili[3].amount,
+                      venditeMensili[4].amount, venditeMensili[5].amount, venditeMensili[6].amount, venditeMensili[7].amount,
+                      venditeMensili[8].amount, venditeMensili[9].amount, venditeMensili[10].amount, venditeMensili[11].amount
+                     ]
+            }]
+         },
+
+         // Configuration options go here
+         options: {}
       });
+
    }
 
-   function deleteItem(itemid) {
-      $.ajax({
-            url : "http://138.68.64.12:3007/todo/" + itemid,
-            method : "DELETE",
-            // data : {
-            //    id : itemid
-            // },
-            success : function(data){
-               console.log(data);
-               $('#list').children("#"+itemid).remove();
-            },
-            error : function(e){
-               console.log(e);
-            },
-      });
+   //Funzione che raccoglie la lista di tutti i venditori dell'azienda
+   function getSalesMen(data) {
+      var list = [];
+      var salesmenList = [];
+
+      for (var i = 0; i < data.length; i++) {
+         if ( !(list.includes(data[i].salesman)) ) {
+            list.push( data[i].salesman );
+         }
+      }
+
+      for (var i = 0; i < list.length; i++) {
+         salesmenList[i] = {
+            'name' : list[i],
+            'amount' : 0
+         }
+      }
+
+      return salesmenList;
    }
 
-   //Funzione per il reset dell'input
-   function resetInput(inputField) {
-      inputField.val('');
-   }
+   function getIndividualSales(data) {
+      //var individualSales = [];
+      var salesMen = getSalesMen(data);
+      console.log("prova");
+      console.log(salesMen['Marco']);
 
-*/
+      for (var i = 0; i < data.length; i++) {
+
+         console.log(data[i].salesman);
+
+      }
+
+      return salesMen;
+
+   }
 
 });
