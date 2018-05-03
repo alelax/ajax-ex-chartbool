@@ -34,14 +34,10 @@ $(document).ready(function(){
             }
 
             printLineChart(venditeMensili);
-            console.log(venditeMensili);
-
-            var salesmen = getSalesMen(data);
-
-            console.log(salesmen);
+            console.log(venditeMensili);            
 
             var individual = getIndividualSales(data);
-
+            console.log("individual");;
             console.log(individual);
             //console.log(data.format('MM'));
 
@@ -104,15 +100,15 @@ $(document).ready(function(){
    }
 
    function getIndividualSales(data) {
-      //var individualSales = [];
+
       var salesMen = getSalesMen(data);
-      console.log("prova");
-      console.log(salesMen['Marco']);
 
       for (var i = 0; i < data.length; i++) {
-
-         console.log(data[i].salesman);
-
+         for (var j = 0; j < salesMen.length; j++) {
+            if ( data[i].salesman == salesMen[j].name) {
+               salesMen[j].amount += data[i].amount;
+            }
+         }
       }
 
       return salesMen;
