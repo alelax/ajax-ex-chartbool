@@ -1,19 +1,7 @@
 // 4283f11a-0c36-490a-a135-7df8f7c954d4
 
 /* http://138.68.64.12:3017/sales */
-var venditeMensili = [  { 'month' : '01', 'amount' : 0 },
-                        { 'month' : '02', 'amount' : 0 },
-                        { 'month' : '03', 'amount' : 0 },
-                        { 'month' : '04', 'amount' : 0 },
-                        { 'month' : '05', 'amount' : 0 },
-                        { 'month' : '06', 'amount' : 0 },
-                        { 'month' : '07', 'amount' : 0 },
-                        { 'month' : '08', 'amount' : 0 },
-                        { 'month' : '09', 'amount' : 0 },
-                        { 'month' : '10', 'amount' : 0 },
-                        { 'month' : '11', 'amount' : 0 },
-                        { 'month' : '12', 'amount' : 0 },
-                     ]
+
 
 $(document).ready(function(){
 
@@ -28,13 +16,11 @@ $(document).ready(function(){
 
          success : function(data) {
 
-            var monthlySales = getMonthlySales(data);
+            var lineChartData = getMonthlySales(data);
+            printLineChart(lineChartData);
 
-            printLineChart(monthlySales);
-
-            var individualSales = getIndividualSales(data);
-
-            printPieChart(individualSales);
+            var pieChartData = getIndividualSales(data);
+            printPieChart(pieChartData);
 
          },
 
@@ -51,18 +37,43 @@ $(document).ready(function(){
    //Funzione che riceve in ingresso i data inviati dall'API e restituisce un oggetto
    //contenente il totale delle vendite per ogni mese dell'anno 2017
    function getMonthlySales(data) {
+
+      var venditeMensili = {
+         'January' : 0,
+         'February' : 0,
+         'March' : 0,
+         'April' : 0,
+         'May' : 0,
+         'June' : 0,
+         'July' : 0,
+         'August' : 0,
+         'September' : 0,
+         'October': 0,
+         'November': 0,
+         'December': 0,
+      }
       for (var i = 0; i < data.length; i++) {
          var saleDate = moment(data[i].date, "DD-MM-YYYY");
          var saleAmount = data[i].amount;
-         var thisMonth = saleDate.format('MM');
-         venditeMensili[thisMonth-1].amount += saleAmount;
+         var thisMonth = saleDate.format('MMMM');
+         venditeMensili[thisMonth] += saleAmount;
       }
 
-      return venditeMensili;
+      var dati = {
+         labels : [],
+         monthAmount : []
+      };
+
+      for (var keyVenditeMensili in venditeMensili) {
+         dati.labels.push(keyVenditeMensili);
+         dati.monthAmount.push(venditeMensili[keyVenditeMensili]);
+      }
+
+      return dati;
    }
 
-   //Funzione che mostra un grafico che mostra l'andamento delle vendite mensili
-   function printLineChart(venditeMensili) {
+   //Funzione che mostra un grafico che visualizza l'andamento delle vendite mensili
+   function printLineChart(dati) {
       var ctx = document.getElementById('monthlySales').getContext('2d');
       var chart = new Chart(ctx, {
          // The type of chart we want to create
@@ -70,15 +81,12 @@ $(document).ready(function(){
 
          // The data for our dataset
          data: {
-            labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+            labels: dati.labels,
             datasets: [{
                label: "Vendite Mensili",
                borderColor: 'rgb(40, 77, 213)',
                backgroundColor: 'rgba(40, 77, 213, 0.65)',
-               data: [venditeMensili[0].amount, venditeMensili[1].amount, venditeMensili[2].amount, venditeMensili[3].amount,
-                      venditeMensili[4].amount, venditeMensili[5].amount, venditeMensili[6].amount, venditeMensili[7].amount,
-                      venditeMensili[8].amount, venditeMensili[9].amount, venditeMensili[10].amount, venditeMensili[11].amount
-                     ]
+               data: dati.monthAmount
             }]
          },
 
@@ -88,76 +96,60 @@ $(document).ready(function(){
 
    }
 
+   //Funzione che riceve in ingresso i data inviati dall'API e restituisce un oggetto
+   //contenente le vendite totali di ogni venditore nell'anno 2017
+   function getIndividualSales(data) {
 
-   function printPieChart(venditeIndividuali) {
+      var salesMen = {};
+      var totalAmount = 0;
+
+      for (var i = 0; i < data.length; i++) {
+         sales = data[i];
+         saler = sales.salesman;
+
+         if ( !(salesMen[saler]) ) {
+            salesMen[saler] = 0;
+         }
+
+         salesMen[saler] += sales.amount;
+         totalAmount += sales.amount;
+      }
+
+      var dati = {
+         labels : [],
+         annualAmount : [],
+         percent : []
+      };
+
+      for (var keySalesMen in salesMen) {
+         dati.labels.push(keySalesMen);
+         dati.annualAmount.push(salesMen[keySalesMen]);
+         salesPercent = ( salesMen[keySalesMen] * 100 / totalAmount).toFixed(2);
+         dati.percent.push(salesPercent)
+      }
+
+      return dati;
+
+
+   }
+
+   //Funzione che mostra un grafico che visualizza l'andamento delle vendite annuali di ogni venditore
+   function printPieChart(dati) {
       var ctx = document.getElementById('individualSales').getContext('2d');
       var myPieChart = new Chart(ctx,{
          type: 'pie',
          data: {
-            labels : [ venditeIndividuali[0].name + " %", venditeIndividuali[1].name + " %", venditeIndividuali[2].name + " %", venditeIndividuali[3].name + " %" ],
+            labels : dati.labels,
             datasets : [{
                label: "Vendite Individuali",
                borderColor: [ 'rgb(255, 255, 255)', 'rgb(255, 255, 255)', 'rgb(255, 255, 255)', 'rgb(255, 255, 255)' ],
                backgroundColor: [ 'rgba(198, 2, 75, 0.82)', 'rgb(21, 43, 163)', 'rgb(104, 219, 9)', 'rgb(223, 18, 18)' ],
-               data: [ venditeIndividuali[0].amount_percent, venditeIndividuali[1].amount_percent, venditeIndividuali[2].amount_percent, venditeIndividuali[3].amount_percent ]
+               data: dati.percent
             }]
          },
          options: {}
       });
    }
 
-   //Funzione che riceve i dati dall'API e calcola l'ammontare delle vendite nell'anno
-   function getTotalSales(data) {
-      var totalSales = 0;
-      for (var i = 0; i < data.length; i++) {
-         totalSales += data[i].amount;
-      }
-      return totalSales;
-   }
-
-   //Funzione che raccoglie la lista di tutti i venditori dell'azienda
-   function getSalesMen(data) {
-      var list = [];
-      var salesmenList = [];
-
-      for (var i = 0; i < data.length; i++) {
-         if ( !(list.includes(data[i].salesman)) ) {
-            list.push( data[i].salesman );
-         }
-      }
-
-      for (var i = 0; i < list.length; i++) {
-         salesmenList[i] = {
-            'name' : list[i],
-            'amount' : 0,
-            'amount_percent' : 0,
-         }
-      }
-
-      return salesmenList;
-   }
-
-   //Funzione che riceve in ingresso i data inviati dall'API e restituisce un oggetto
-   //contenente le vendite totali di ogni venditore nell'anno 2017
-   function getIndividualSales(data) {
-
-      var salesMenData = getSalesMen(data);
-      var totalSales = getTotalSales(data);
-
-      for (var i = 0; i < data.length; i++) {
-         for (var j = 0; j < salesMenData.length; j++) {
-            if ( data[i].salesman == salesMenData[j].name) {
-               salesMenData[j].amount += data[i].amount;
-            }
-         }
-      }
-
-      for (var i = 0; i < salesMenData.length; i++) {
-         salesMenData[i].amount_percent = (salesMenData[i].amount / totalSales * 100).toFixed(2);
-      }
-
-      return salesMenData;
-
-   }
 
 });
