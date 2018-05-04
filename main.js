@@ -19,22 +19,21 @@ $(document).ready(function(){
 
    $('#btn').click(function(){
 
+      $(this).hide();
+      $('.chart-container').show();
+
       $.ajax({
          url : "http://138.68.64.12:3017/sales",
          method : "GET",
 
          success : function(data) {
-            console.log(data);
 
             var monthlySales = getMonthlySales(data);
 
             printLineChart(monthlySales);
-            console.log(venditeMensili);
 
             var individualSales = getIndividualSales(data);
-            console.log("individual");;
-            console.log(individualSales);
-            //console.log(data.format('MM'));
+
             printPieChart(individualSales);
 
          },
@@ -74,8 +73,8 @@ $(document).ready(function(){
             labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             datasets: [{
                label: "Vendite Mensili",
-               borderColor: 'rgb(255, 99, 132)',
-               backgroundColor: 'rgba(255, 99, 132, 0)',
+               borderColor: 'rgb(40, 77, 213)',
+               backgroundColor: 'rgba(40, 77, 213, 0.65)',
                data: [venditeMensili[0].amount, venditeMensili[1].amount, venditeMensili[2].amount, venditeMensili[3].amount,
                       venditeMensili[4].amount, venditeMensili[5].amount, venditeMensili[6].amount, venditeMensili[7].amount,
                       venditeMensili[8].amount, venditeMensili[9].amount, venditeMensili[10].amount, venditeMensili[11].amount
@@ -98,8 +97,8 @@ $(document).ready(function(){
             labels : [ venditeIndividuali[0].name + " %", venditeIndividuali[1].name + " %", venditeIndividuali[2].name + " %", venditeIndividuali[3].name + " %" ],
             datasets : [{
                label: "Vendite Individuali",
-               borderColor: [ 'rgb(198, 2, 75)', 'rgb(21, 43, 163)', 'rgb(104, 219, 9)', 'rgb(223, 18, 18)' ],
-               backgroundColor: [ 'rgb(198, 2, 75)', 'rgb(21, 43, 163)', 'rgb(104, 219, 9)', 'rgb(223, 18, 18)' ],
+               borderColor: [ 'rgb(255, 255, 255)', 'rgb(255, 255, 255)', 'rgb(255, 255, 255)', 'rgb(255, 255, 255)' ],
+               backgroundColor: [ 'rgba(198, 2, 75, 0.82)', 'rgb(21, 43, 163)', 'rgb(104, 219, 9)', 'rgb(223, 18, 18)' ],
                data: [ venditeIndividuali[0].amount_percent, venditeIndividuali[1].amount_percent, venditeIndividuali[2].amount_percent, venditeIndividuali[3].amount_percent ]
             }]
          },
