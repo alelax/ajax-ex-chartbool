@@ -15,15 +15,33 @@
 
       <button id="btn" type="button" name="button">Mostra andamento Aziendale</button>
 
-      <div class="chart-container">
-         <h2 class="chart-title">Vendite Mensili</h2>
-         <canvas id="monthlySales"></canvas>
-      </div>
+      <main class="main-ctn">
 
-      <div class="chart-container">
-         <h2 class="chart-title">Vendite Individuali</h2>
-         <canvas id="individualSales"></canvas>
-      </div>
+         <div class="new-sales-ctn">
+            <select id="salesman-list" class="" name="">
+               <option value="---" selected="selected">Choose salesman</option>
+               <!-- <option value="choose here">Choose here</option> -->
+            </select>
+
+            <select id="month-list" class="" name="">
+               <option value="---" selected="selected">Choose month</option>
+            </select>
+
+            <input id="amount-input" type="text" name="" value="" placeholder="Insert sale's amount">
+
+            <button id="add-btn" type="button" name="button">Add data</button>
+         </div>
+
+         <div class="chart-container">
+            <h2 class="chart-title">Vendite Mensili</h2>
+            <canvas id="monthlySales"></canvas>
+         </div>
+
+         <div class="chart-container">
+            <h2 class="chart-title">Vendite Individuali (%)</h2>
+            <canvas id="individualSales"></canvas>
+         </div>
+      </main>
 
       <script type="text/javascript" src="main.js"></script>
    </body>

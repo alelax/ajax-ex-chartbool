@@ -8,20 +8,33 @@ $(document).ready(function(){
    $('#btn').click(function(){
 
       $(this).hide();
-      $('.chart-container').show();
+      $('.main-ctn').show();
+
+      getCharts();
+
+   });
+
+   $('#add-btn').click(function(){
+      var salerName = $('#salesman-list').val();
+      var monthOfSale = $('#month-list').val();
+      var thisInput = $('#amount-input');
+      var amountOfSale = parseInt(thisInput.val());
+
+      var date = moment("01-"+monthOfSale+"-2017", "DD/MMMM/YYYY");
+      var correctDate = date.format("DD/MM/YYYY");
 
       $.ajax({
          url : "http://138.68.64.12:3017/sales",
-         method : "GET",
+         method : "POST",
+         data : {
+            salesman : salerName,
+            amount : 5000,
+            date : correctDate
+         },
 
          success : function(data) {
-
-            var lineChartData = getMonthlySales(data);
-            printLineChart(lineChartData);
-
-            var pieChartData = getIndividualSales(data);
-            printPieChart(pieChartData);
-
+            resetInput(thisInput);
+            getCharts();
          },
 
          error : function(e){
@@ -29,8 +42,8 @@ $(document).ready(function(){
          },
       });
 
-   });
 
+   })
 
    /* ***** FUNZIONI ***** */
 
@@ -54,7 +67,7 @@ $(document).ready(function(){
       }
       for (var i = 0; i < data.length; i++) {
          var saleDate = moment(data[i].date, "DD-MM-YYYY");
-         var saleAmount = data[i].amount;
+         var saleAmount = parseInt(data[i].amount);
          var thisMonth = saleDate.format('MMMM');
          venditeMensili[thisMonth] += saleAmount;
       }
@@ -111,8 +124,8 @@ $(document).ready(function(){
             salesMen[saler] = 0;
          }
 
-         salesMen[saler] += sales.amount;
-         totalAmount += sales.amount;
+         salesMen[saler] += parseInt(sales.amount);
+         totalAmount += parseInt(sales.amount);
       }
 
       var dati = {
@@ -124,7 +137,7 @@ $(document).ready(function(){
       for (var keySalesMen in salesMen) {
          dati.labels.push(keySalesMen);
          dati.annualAmount.push(salesMen[keySalesMen]);
-         salesPercent = ( salesMen[keySalesMen] * 100 / totalAmount).toFixed(2);
+         var salesPercent = ( salesMen[keySalesMen] * 100 / totalAmount).toFixed(2);
          dati.percent.push(salesPercent)
       }
 
@@ -151,5 +164,51 @@ $(document).ready(function(){
       });
    }
 
+   //Genera una select con tutti i nomi dei venditori
+   function fillSalesManSelect(dati) {
+      for (var i = 0; i < dati.labels.length; i++) {
+         $('#salesman-list').append(
+            '<option value="'+ dati.labels[i] +'">' + dati.labels[i] + '</option>'
+         )
+      }
+   }
+
+   function fillMonthSelect(dati) {
+      for (var i = 0; i < dati.labels.length; i++) {
+         $('#month-list').append(
+            '<option>' + dati.labels[i] + '</option>'
+         )
+      }
+   }
+
+   //Funzione per il reset dell'input
+   function resetInput(inputField) {
+      inputField.val('');
+   }
+
+   function getCharts() {
+      $.ajax({
+         url : "http://138.68.64.12:3017/sales",
+         method : "GET",
+
+         success : function(data) {
+
+            var lineChartData = getMonthlySales(data);
+            printLineChart(lineChartData);
+
+            var pieChartData = getIndividualSales(data);
+            printPieChart(pieChartData);
+
+            fillSalesManSelect(pieChartData);
+            fillMonthSelect(lineChartData);
+
+
+         },
+
+         error : function(e){
+            console.log(e);
+         },
+      });
+   }
 
 });
