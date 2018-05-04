@@ -26,21 +26,16 @@ $(document).ready(function(){
          success : function(data) {
             console.log(data);
 
-            for (var i = 0; i < data.length; i++) {
-               var saleDate = moment(data[i].date, "DD-MM-YYYY");
-               var saleAmount = data[i].amount;
-               var thisMonth = saleDate.format('MM');
-               venditeMensili[thisMonth-1].amount = venditeMensili[thisMonth-1].amount + saleAmount;
-            }
+            var monthlySales = getMonthlySales(data);
 
-            printLineChart(venditeMensili);
-            console.log(venditeMensili);            
+            printLineChart(monthlySales);
+            console.log(venditeMensili);
 
-            var individual = getIndividualSales(data);
+            var individualSales = getIndividualSales(data);
             console.log("individual");;
-            console.log(individual);
+            console.log(individualSales);
             //console.log(data.format('MM'));
-
+            printPieChart(individualSales);
 
          },
 
@@ -51,9 +46,25 @@ $(document).ready(function(){
 
    });
 
+
+   /* ***** FUNZIONI ***** */
+
+   //Funzione che riceve in ingresso i data inviati dall'API e restituisce un oggetto
+   //contenente il totale delle vendite per ogni mese dell'anno 2017
+   function getMonthlySales(data) {
+      for (var i = 0; i < data.length; i++) {
+         var saleDate = moment(data[i].date, "DD-MM-YYYY");
+         var saleAmount = data[i].amount;
+         var thisMonth = saleDate.format('MM');
+         venditeMensili[thisMonth-1].amount += saleAmount;
+      }
+
+      return venditeMensili;
+   }
+
    //Funzione che mostra un grafico che mostra l'andamento delle vendite mensili
    function printLineChart(venditeMensili) {
-      var ctx = document.getElementById('myChart').getContext('2d');
+      var ctx = document.getElementById('monthlySales').getContext('2d');
       var chart = new Chart(ctx, {
          // The type of chart we want to create
          type: 'line',
@@ -78,6 +89,33 @@ $(document).ready(function(){
 
    }
 
+
+   function printPieChart(venditeIndividuali) {
+      var ctx = document.getElementById('individualSales').getContext('2d');
+      var myPieChart = new Chart(ctx,{
+         type: 'pie',
+         data: {
+            labels : [ venditeIndividuali[0].name + " %", venditeIndividuali[1].name + " %", venditeIndividuali[2].name + " %", venditeIndividuali[3].name + " %" ],
+            datasets : [{
+               label: "Vendite Individuali",
+               borderColor: [ 'rgb(198, 2, 75)', 'rgb(21, 43, 163)', 'rgb(104, 219, 9)', 'rgb(223, 18, 18)' ],
+               backgroundColor: [ 'rgb(198, 2, 75)', 'rgb(21, 43, 163)', 'rgb(104, 219, 9)', 'rgb(223, 18, 18)' ],
+               data: [ venditeIndividuali[0].amount_percent, venditeIndividuali[1].amount_percent, venditeIndividuali[2].amount_percent, venditeIndividuali[3].amount_percent ]
+            }]
+         },
+         options: {}
+      });
+   }
+
+   //Funzione che riceve i dati dall'API e calcola l'ammontare delle vendite nell'anno
+   function getTotalSales(data) {
+      var totalSales = 0;
+      for (var i = 0; i < data.length; i++) {
+         totalSales += data[i].amount;
+      }
+      return totalSales;
+   }
+
    //Funzione che raccoglie la lista di tutti i venditori dell'azienda
    function getSalesMen(data) {
       var list = [];
@@ -92,26 +130,34 @@ $(document).ready(function(){
       for (var i = 0; i < list.length; i++) {
          salesmenList[i] = {
             'name' : list[i],
-            'amount' : 0
+            'amount' : 0,
+            'amount_percent' : 0,
          }
       }
 
       return salesmenList;
    }
 
+   //Funzione che riceve in ingresso i data inviati dall'API e restituisce un oggetto
+   //contenente le vendite totali di ogni venditore nell'anno 2017
    function getIndividualSales(data) {
 
-      var salesMen = getSalesMen(data);
+      var salesMenData = getSalesMen(data);
+      var totalSales = getTotalSales(data);
 
       for (var i = 0; i < data.length; i++) {
-         for (var j = 0; j < salesMen.length; j++) {
-            if ( data[i].salesman == salesMen[j].name) {
-               salesMen[j].amount += data[i].amount;
+         for (var j = 0; j < salesMenData.length; j++) {
+            if ( data[i].salesman == salesMenData[j].name) {
+               salesMenData[j].amount += data[i].amount;
             }
          }
       }
 
-      return salesMen;
+      for (var i = 0; i < salesMenData.length; i++) {
+         salesMenData[i].amount_percent = (salesMenData[i].amount / totalSales * 100).toFixed(2);
+      }
+
+      return salesMenData;
 
    }
 
