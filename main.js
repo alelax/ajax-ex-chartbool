@@ -12,6 +12,7 @@ $(document).ready(function(){
 
       getCharts();
 
+
    });
 
    $('#add-btn').click(function(){
@@ -85,6 +86,45 @@ $(document).ready(function(){
       return dati;
    }
 
+   function getQuarterSales(data) {
+
+      var venditeTrimestrali = {
+         'Q1' : 0,
+         'Q2' : 0,
+         'Q3' : 0,
+         'Q4' : 0,
+      }
+
+      var d = getMonthlySales(data);
+
+      for (var i = 0; i < d.monthAmount.length; i++) {
+         if (i < 3) {
+            venditeTrimestrali['Q1'] += d.monthAmount[i];
+         }
+         else if (i < 6) {
+            venditeTrimestrali['Q2'] += d.monthAmount[i];
+         }
+         else if (i < 9) {
+            venditeTrimestrali['Q3'] += d.monthAmount[i];
+         }
+         else {
+            venditeTrimestrali['Q4'] += d.monthAmount[i];
+         }
+      }
+
+      var dati = {
+         labels : [],
+         trimAmount : []
+      };
+
+      for (var keyVenditeTrimestrali in venditeTrimestrali) {
+         dati.labels.push(keyVenditeTrimestrali);
+         dati.trimAmount.push(venditeTrimestrali[keyVenditeTrimestrali]);
+      }
+
+      return dati;
+   }
+
    //Funzione che mostra un grafico che visualizza l'andamento delle vendite mensili
    function printLineChart(dati) {
       var ctx = document.getElementById('monthlySales').getContext('2d');
@@ -108,6 +148,30 @@ $(document).ready(function(){
       });
 
    }
+
+   //Funzione che mostra un grafico che visualizza l'andamento delle vendite trimestrali
+   function printBarChart(dati) {
+      var ctx = document.getElementById('quarterSales').getContext('2d');
+      var chart = new Chart(ctx, {
+         // The type of chart we want to create
+         type: 'bar',
+
+         // The data for our dataset
+         data: {
+            labels: dati.labels,
+            datasets: [{
+               label: "Vendite Trimestre",
+               backgroundColor: 'rgba(22, 214, 53, 0.95)',
+               data: dati.trimAmount
+            }]
+         },
+
+         // Configuration options go here
+         options: {}
+      });
+
+   }
+
 
    //Funzione che riceve in ingresso i data inviati dall'API e restituisce un oggetto
    //contenente le vendite totali di ogni venditore nell'anno 2017
@@ -199,9 +263,16 @@ $(document).ready(function(){
             var pieChartData = getIndividualSales(data);
             printPieChart(pieChartData);
 
+            var barChartData = getQuarterSales(data);
+            printBarChart(barChartData);
+
+
             fillSalesManSelect(pieChartData);
             fillMonthSelect(lineChartData);
 
+            console.log("length: " + lineChartData.monthAmount.length);
+            console.log(lineChartData);
+            console.log(getQuarterSales(data));
 
          },
 
